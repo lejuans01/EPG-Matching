@@ -5,85 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EPG M3U Processor</title>
   <style>
+    :root {
+      --background-dark: #121212;
+      --text-dark: #f9f9f9;
+      --button-bg-dark: #1e88e5;
+      --button-hover-dark: #1565c0;
+    }
+
     body {
       font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #f9f9f9;
-      text-align: center;
+      background-color: var(--background-dark);
+      color: var(--text-dark);
       padding: 20px;
+      text-align: center;
     }
 
     main {
-      max-width: 800px;
+      max-width: 1000px;
       margin: auto;
-      padding: 20px;
+      padding: 30px;
       background-color: #1e1e1e;
-      border-radius: 10px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 15px;
     }
 
     textarea {
       width: 100%;
       height: 200px;
       background-color: #333;
-      color: #f9f9f9;
+      color: var(--text-dark);
       border: none;
-      margin: 10px 0;
+      padding: 15px;
+      margin-top: 20px;
+      font-size: 1rem;
     }
 
     button, select {
-      background-color: #1e88e5;
+      background-color: var(--button-bg-dark);
       color: white;
-      padding: 10px 20px;
+      padding: 15px;
       border: none;
       border-radius: 5px;
       margin: 10px;
       cursor: pointer;
+      width: 100%;
+      font-size: 1.25rem;
     }
 
-    button:hover {
-      background-color: #1565c0;
+    button:hover, select:hover {
+      background-color: var(--button-hover-dark);
     }
+
     .upload-btn-container {
-  margin-top: 15px;
-}
+      margin-top: 15px;
+    }
 
-input[type="file"] {
-  display: none;
-}
+    input[type="file"] {
+      display: none;
+    }
 
-.upload-btn {
-  background-color: var(--button-bg-dark);
-  padding: 15px;
-  font-size: 1.25rem;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 100%;
-}
+    .upload-btn {
+      background-color: var(--button-bg-dark);
+      padding: 15px;
+      font-size: 1.25rem;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
 
+    .upload-btn:hover {
+      background-color: var(--button-hover-dark);
+    }
+
+    @media (min-width: 768px) {
+      main {
+        max-width: 800px;
+      }
+    }
   </style>
 </head>
 <body>
+
   <main>
     <h1>EPG M3U Processor</h1>
-    <p>Upload or paste your M3U file below:</p>
-    <textarea id="m3uInput" placeholder="Paste your M3U content here..."></textarea>
-    <button onclick="processFile()">Process File</button>
+    <p>Upload your M3U file or paste content below:</p>
+
     <!-- File Upload Button -->
-<div class="upload-btn-container">
-  <label for="fileInput" class="upload-btn">Upload M3U File</label>
-  <input type="file" id="fileInput" accept=".m3u,.m3u8" onchange="handleFileUpload(event)" />
-</div>
+    <div class="upload-btn-container">
+      <label for="fileInput" class="upload-btn">Upload M3U File</label>
+      <input type="file" id="fileInput" accept=".m3u,.m3u8" onchange="handleFileUpload(event)" />
+    </div>
 
+    <!-- Paste M3U Content -->
+    <textarea id="m3uInput" placeholder="Or paste your M3U content here..."></textarea>
+    <button onclick="processFile()">Process File</button>
 
+    <!-- Unmatched Channels Output -->
     <h2>Unmatched Channels</h2>
     <textarea id="unmatchedOutput" readonly></textarea>
 
-    <h2>Select Additional Sources</h2>
+    <!-- Category Selection -->
+    <h2>Select Category</h2>
     <select id="sourceDropdown"></select>
     <button onclick="refineMatches()">Refine Matches</button>
 
+    <!-- Final Output -->
     <h2>Final Output</h2>
     <textarea id="finalOutput" readonly></textarea>
     <button onclick="downloadFile()">Download M3U</button>
@@ -92,23 +125,52 @@ input[type="file"] {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
   <script>
     async function loadDatabase() {
-      const response = await fetch('epg_data.db');
-      const arrayBuffer = await response.arrayBuffer();
-      const db = new SQL.Database(new Uint8Array(arrayBuffer));
+      try {
+        const response = await fetch('epg_data.db');
+        if (!response.ok) {
+          throw new Error('Failed to fetch database');
+        }
 
-      const categories = db.exec("SELECT DISTINCT category FROM tvg_ids;")[0].values;
-      const dropdown = document.getElementById("sourceDropdown");
-      categories.forEach(([category]) => {
-        const option = document.createElement("option");
-        option.value = category;
-        option.textContent = category;
-        dropdown.appendChild(option);
-      });
+        const arrayBuffer = await response.arrayBuffer();
+        const db = new SQL.Database(new Uint8Array(arrayBuffer));
+
+        const categories = db.exec("SELECT DISTINCT category FROM tvg_ids;")[0].values;
+
+        if (categories.length === 0) {
+          console.log('No categories found in database!');
+          return;  // If no categories found, exit early
+        }
+
+        const dropdown = document.getElementById("sourceDropdown");
+        categories.forEach(([category]) => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          dropdown.appendChild(option);
+        });
+
+      } catch (error) {
+        console.error('Error loading database:', error);
+      }
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById("m3uInput").value = e.target.result;
+        };
+        reader.readAsText(file);
+      }
     }
 
     function processFile() {
       const m3uContent = document.getElementById("m3uInput").value;
-      unmatchedChannels = ["Example Channel 1", "Example Channel 2"];
+      console.log("Processing M3U file:", m3uContent);  // Debugging statement
+
+      // Process the M3U content here
+      const unmatchedChannels = ["Example Channel 1", "Example Channel 2"];
       document.getElementById("unmatchedOutput").value = unmatchedChannels.join("\n");
     }
 

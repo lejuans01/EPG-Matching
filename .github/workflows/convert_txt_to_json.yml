@@ -1,0 +1,43 @@
+name: Convert TXT to JSON
+
+on:
+  push:
+    paths:
+      - 'docs/*.txt'  # Trigger action when any TXT file in the docs folder is updated
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  convert_txt_to_json:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install requests beautifulsoup4
+
+    - name: Run convert_txt_to_json.py script
+      run: |
+        python docs/convert_txt_to_json.py  # Adjust the path if needed
+
+    - name: Commit and push the updated epg_data.json
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "github-actions@github.com"
+        
+        # Check for unstaged changes
+        git status
+        
+        # Add and commit changes to epg_data.json
+        git add epg_data.json
+        git commit -m "Update epg_data.json from TXT files"
+        
+        # Push the changes back to the repository
+        git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main

@@ -21,11 +21,20 @@ You can try the live demo of the web application here:
 
 [https://lejuans01.github.io/EPG-Matching/](https://lejuans01.github.io/EPG-Matching/)
 
-## Setup
+## How to Use
 
-### 1. Clone the Repository
+1. **Upload or Paste M3U File**: 
+   - Use the **"Upload M3U File"** button to select a local `.m3u` file, or paste M3U content into the text area provided.
 
-First, clone this repository to your local machine using the following command:
+2. **Process the File**: 
+   - Click **"Process File"** to start matching channels from your M3U file with the `tvg-id` values from the master database.
 
-```bash
-git clone https://github.com/lejuans01/EPG-Matching.git
+3. **Refine Matches**:
+   - After processing, select a category from the dropdown (e.g., `US`, `UK`, etc.) to refine the matching process further.
+
+4. **Download Processed M3U**: 
+   - Once you're satisfied with the matches, click **"Download M3U"** to download the final M3U file with the correct `tvg-id` values.
+
+## License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.

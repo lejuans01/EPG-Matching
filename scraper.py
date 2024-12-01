@@ -29,7 +29,7 @@ def process_txt_file(file_name, cursor):
 
 # Step 3: Setup database and process all files
 def setup_database():
-    conn = sqlite3.connect("epg_data.db")
+    conn = sqlite3.connect("docs/epg_data.db")  # Save to 'docs' folder
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS tvg_ids (
                         id INTEGER PRIMARY KEY,
@@ -46,5 +46,4 @@ def setup_database():
     conn.commit()
     conn.close()
 
-# Run the scraper
 setup_database()

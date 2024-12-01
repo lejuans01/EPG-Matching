@@ -28,13 +28,10 @@ function matchChannels(m3uContent) {
       let matchFound = false;
 
       // Check if the channel name exists in the master data
-      for (let category in epg_data) {
-        if (epg_data[category].hasOwnProperty(channelName)) {
-          // If found, add the tvg-id to the matched channels
-          matchedChannels.push({ name: channelName, tvgId: epg_data[category][channelName] });
-          matchFound = true;
-          break;
-        }
+      if (epg_data.hasOwnProperty(channelName)) {
+        // If found, add the tvg-id to the matched channels
+        matchedChannels.push({ name: channelName, tvgId: epg_data[channelName] });
+        matchFound = true;
       }
 
       if (!matchFound) {
@@ -54,12 +51,8 @@ function displayMatches(matched, unmatched) {
   let unmatchedOutput = unmatched.join("\n");
 
   // Update the result section in the HTML
-  document.getElementById('channelOutput').innerHTML = `
-    <h2>Matched Channels:</h2>
-    <pre>${matchedOutput}</pre>
-    <h2>Unmatched Channels:</h2>
-    <pre>${unmatchedOutput}</pre>
-  `;
+  document.getElementById('unmatchedOutput').value = unmatchedOutput;
+  document.getElementById('finalOutput').value = matchedOutput;
 }
 
 // Handle the file upload process
@@ -77,7 +70,17 @@ function handleFileUpload(event) {
   }
 }
 
-// Load the master EPG data when the page loads
+// Function to download the updated M3U file
+function downloadFile() {
+  const content = document.getElementById("finalOutput").value;
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "updated_channels.m3u";
+  a.click();
+}
+
 window.onload = function() {
   fetchMasterData();  // Load the master EPG data into memory
 };

@@ -1,194 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EPG M3U Processor</title>
   <style>
+    :root {
+      --background-dark: #121212;
+      --text-dark: #f9f9f9;
+      --button-bg-dark: #1e88e5;
+      --button-hover-dark: #1565c0;
+      --input-bg-dark: #333;
+      --textarea-bg-dark: #333;
+      --input-text-dark: #f9f9f9;
+    }
+
     body {
       font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #fff;
+      background-color: var(--background-dark);
+      color: var(--text-dark);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    main {
+      background-color: #1e1e1e;
+      border-radius: 15px;
       padding: 20px;
+      width: 90%;
+      max-width: 1000px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
-    h1, h2 {
-      color: #fff;
-    }
-
-    .upload-btn-container {
+    h1 {
+      font-size: 2rem;
       margin-bottom: 20px;
     }
 
-    .upload-btn {
-      background-color: #008CBA;
-      padding: 12px 20px;
-      border-radius: 5px;
-      color: white;
-      cursor: pointer;
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
     }
 
-    #sourceDropdown {
-      padding: 10px;
-      margin-top: 10px;
-      background-color: #333;
-      color: #fff;
+    textarea, select {
+      width: 100%;
+      background-color: var(--textarea-bg-dark);
+      color: var(--input-text-dark);
+      border: none;
+      padding: 15px;
+      margin: 10px 0;
+      font-size: 1rem;
+      border-radius: 5px;
     }
 
     button {
-      background-color: #4CAF50;
+      background-color: var(--button-bg-dark);
       color: white;
-      padding: 10px;
+      padding: 15px;
       border: none;
-      border-radius: 4px;
+      border-radius: 5px;
+      margin: 10px 0;
       cursor: pointer;
-      margin-top: 10px;
+      width: 100%;
+      font-size: 1.25rem;
     }
 
     button:hover {
-      background-color: #45a049;
+      background-color: var(--button-hover-dark);
     }
 
-    textarea {
+    .upload-btn-container {
+      margin-top: 15px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .upload-btn {
+      background-color: var(--button-bg-dark);
+      padding: 15px;
+      font-size: 1.25rem;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
       width: 100%;
-      height: 200px;
-      margin-top: 10px;
-      padding: 10px;
-      font-size: 14px;
-      border: 1px solid #333;
-      border-radius: 4px;
-      background-color: #333;
-      color: #fff;
+    }
+
+    .upload-btn:hover {
+      background-color: var(--button-hover-dark);
+    }
+
+    @media (max-width: 768px) {
+      main {
+        width: 100%;
+        padding: 15px;
+      }
     }
   </style>
 </head>
+
 <body>
+  <main>
+    <h1>EPG M3U Processor</h1>
+    <p>Upload your M3U file or paste content below:</p>
 
-  <h1>EPG M3U Processor</h1>
-  <div class="upload-btn-container">
-    <label for="fileInput" class="upload-btn">Upload M3U File</label>
-    <input type="file" id="fileInput" accept=".m3u,.m3u8" onchange="handleFileUpload(event)" />
-  </div>
+    <!-- File Upload Button -->
+    <div class="upload-btn-container">
+      <label for="fileInput" class="upload-btn">Upload M3U File</label>
+      <input type="file" id="fileInput" accept=".m3u,.m3u8" onchange="handleFileUpload(event)" />
+    </div>
 
-  <h2>Unmatched Channels:</h2>
-  <textarea id="unmatchedOutput" readonly></textarea>
+    <!-- Paste M3U Content -->
+    <textarea id="m3uInput" placeholder="Or paste your M3U content here..."></textarea>
+    <button onclick="processFile()">Process File</button>
 
-  <h2>Select Category:</h2>
-  <select id="sourceDropdown"></select>
-  <button onclick="refineMatches()">Refine Matches</button>
+    <!-- Unmatched Channels Output -->
+    <h2>Unmatched Channels</h2>
+    <textarea id="unmatchedOutput" readonly></textarea>
 
-  <h2>Final Output:</h2>
-  <textarea id="finalOutput" readonly></textarea>
-  <button onclick="downloadFile()">Download M3U</button>
+    <!-- Category Selection -->
+    <h2>Select Category</h2>
+    <select id="sourceDropdown"></select>
+    <button onclick="refineMatches()">Refine Matches</button>
 
+    <!-- Final Output -->
+    <h2>Final Output</h2>
+    <textarea id="finalOutput" readonly></textarea>
+    <button onclick="downloadFile()">Download M3U</button>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
   <script>
-    let epg_data = {};  // Initialize empty EPG data object
-    let allChannels = [];  // Store all matched channels
-
-    // Fetch the master EPG data
-    function fetchMasterData() {
-      fetch('epg_data.json')  // Path to your master data file
-        .then(response => response.json())
-        .then(data => {
-          epg_data = data;  // Store the master data
-          console.log('Master EPG Data Loaded:', epg_data);  // Debugging log
-
-          // Populate category dropdown
-          let categories = Object.keys(epg_data);
-          const dropdown = document.getElementById('sourceDropdown');
-          categories.forEach(category => {
-            let option = document.createElement('option');
-            option.value = category;
-            option.textContent = category;
-            dropdown.appendChild(option);
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching EPG data:', error);
-        });
-    }
-
-    // Match M3U channels with the EPG data
-    function matchChannels(m3uContent) {
-      const lines = m3uContent.split("\n");
-      const matchedChannels = [];
-      const unmatchedChannels = [];
-
-      lines.forEach(line => {
-        if (line.startsWith("#EXTINF:")) {
-          const channelName = line.split(",")[1].trim();  // Extract channel name
-          console.log("Processing channel:", channelName);  // Debugging log
-
-          let matchFound = false;
-          for (let category in epg_data) {
-            // Match based on category and channel name
-            if (epg_data[category] && epg_data[category][channelName]) {
-              matchedChannels.push({ name: channelName, tvgId: epg_data[category][channelName] });
-              matchFound = true;
-              break;
-            }
-          }
-
-          if (!matchFound) {
-            unmatchedChannels.push(channelName);
-          }
+    async function loadDatabase() {
+      try {
+        const response = await fetch('epg_data.db');
+        if (!response.ok) {
+          throw new Error('Failed to fetch database');
         }
-      });
 
-      allChannels = matchedChannels;  // Store matched channels globally
-      displayMatches(matchedChannels, unmatchedChannels);
-    }
+        const arrayBuffer = await response.arrayBuffer();
+        const db = new SQL.Database(new Uint8Array(arrayBuffer));
 
-    // Display unmatched and matched channels
-    function displayMatches(matched, unmatched) {
-      let matchedOutput = matched.map(channel => `${channel.name} - tvg-id: ${channel.tvgId}`).join("\n");
-      let unmatchedOutput = unmatched.join("\n");
+        const categories = db.exec("SELECT DISTINCT category FROM tvg_ids;")[0].values;
 
-      // Update the UI with the results
-      document.getElementById('unmatchedOutput').value = unmatchedOutput;
-      document.getElementById('finalOutput').value = matchedOutput;
-    }
+        if (categories.length === 0) {
+          console.log('No categories found in database!');
+          return;
+        }
 
-    // Refine the match by category
-    function refineMatches() {
-      const selectedCategory = document.getElementById('sourceDropdown').value;
-      const matchedInCategory = allChannels.filter(channel => epg_data[selectedCategory] && epg_data[selectedCategory][channel.name]);
-      let refinedOutput = matchedInCategory.map(channel => `${channel.name} - tvg-id: ${channel.tvgId}`).join("\n");
+        const dropdown = document.getElementById("sourceDropdown");
+        categories.forEach(([category]) => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          dropdown.appendChild(option);
+        });
 
-      document.getElementById('finalOutput').value = refinedOutput;
-    }
-
-    // Handle the file upload and processing
-    function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (file && (file.type === "application/x-mpegurl" || file.name.endsWith(".m3u") || file.name.endsWith(".m3u8"))) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const m3uContent = e.target.result;
-          matchChannels(m3uContent);  // Process the M3U content
-        };
-        reader.readAsText(file);
-      } else {
-        alert("Please upload a valid M3U file.");
+      } catch (error) {
+        console.error('Error loading database:', error);
       }
     }
 
-    // Download the updated M3U file
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById("m3uInput").value = e.target.result;
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    function processFile() {
+      const m3uContent = document.getElementById("m3uInput").value;
+      console.log("Processing M3U file:", m3uContent);
+
+      // Process the M3U content here
+      const unmatchedChannels = ["Example Channel 1", "Example Channel 2"];
+      document.getElementById("unmatchedOutput").value = unmatchedChannels.join("\n");
+
+      // Assuming the matched categories (adjust as per your data)
+      const matchedCategories = ["US", "UK"];
+      const dropdown = document.getElementById("sourceDropdown");
+      dropdown.innerHTML = ""; // Clear existing options
+      matchedCategories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        dropdown.appendChild(option);
+      });
+    }
+
+    function refineMatches() {
+      const source = document.getElementById("sourceDropdown").value;
+      alert(`Refining matches using source: ${source}`);
+    }
+
     function downloadFile() {
       const content = document.getElementById("finalOutput").value;
       const blob = new Blob([content], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "updated_channels.m3u";
+      a.download = "processed_epg.m3u";
       a.click();
     }
 
-    // Fetch the master EPG data when the page loads
-    window.onload = function() {
-      fetchMasterData();
-    };
+    window.onload = loadDatabase;
   </script>
-
 </body>
+
 </html>

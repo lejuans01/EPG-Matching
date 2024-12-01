@@ -1,8 +1,8 @@
 import json
 import os
 
-# Path to your .txt files
-txt_files = ["epg_ripper_US1.txt", "epg_ripper_US_LOCALS2.txt", "epg_ripper_US_SPORTS1.txt"]
+# Path to your .txt files in the docs folder
+txt_files = ["docs/epg_ripper_US1.txt", "docs/epg_ripper_US_LOCALS2.txt", "docs/epg_ripper_US_SPORTS1.txt"]
 
 def convert_txt_to_json(txt_files):
     data = {}  # This will hold all your converted data

@@ -1,38 +1,47 @@
-import json
+name: EPG Matching Workflow
 
-# Helper function to read the text file and return the mapping
-def parse_txt_to_dict(txt_file):
-    data = {}
-    with open(txt_file, 'r') as file:
-        for line in file:
-            if line.startswith("#EXTINF:"):
-                parts = line.split(",", 1)
-                channel_name = parts[1].strip()  # Channel name after the comma
-                tvg_id = channel_name.replace(" ", "_").lower()  # You can adjust this to generate a suitable tvg-id
-                data[channel_name] = tvg_id
-    return data
+on:
+  push:
+    branches:
+      - main
 
-# Paths to your .txt files
-txt_files = [
-    'docs/epg_ripper_US1.txt',
-    'docs/epg_ripper_US_LOCALS2.txt',
-    'docs/epg_ripper_US_SPORTS1.txt'
-]
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-# Initialize the final data structure
-epg_data = {
-    "US": {},
-    "UK": {},
-    "SPORTS": {}
-}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-# Process each file and update the data dictionary
-for txt_file in txt_files:
-    category = txt_file.split("_")[2].upper()  # Assuming filenames have a category part like 'US' or 'SPORTS'
-    epg_data[category] = parse_txt_to_dict(txt_file)
+      - name: Set Git Config
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
 
-# Save the data into a JSON file
-with open('epg_data.json', 'w') as json_file:
-    json.dump(epg_data, json_file, indent=4)
+      - name: Check epg_data.json before script
+        run: |
+          echo "Before running script:"
+          cat epg_data.json || echo "No epg_data.json file found"
+        
+      - name: Run the Python script to update epg_data.json
+        run: |
+          python convert_txt_to_json.py
 
-print("epg_data.json has been updated.")
+      - name: Check epg_data.json after script
+        run: |
+          echo "After running script:"
+          cat epg_data.json || echo "No epg_data.json file found"
+        
+      - name: Check if epg_data.json has changes
+        run: |
+          git diff --exit-code || echo "Changes detected in epg_data.json"
+
+      - name: Commit and Push Changes (if any)
+        run: |
+          git status
+          if ! git diff --exit-code; then
+            git add epg_data.json
+            git commit -m "Update epg_data.json from TXT files"
+            git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+          else
+            echo "No changes detected, skipping commit."

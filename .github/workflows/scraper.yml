@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 0 * * *"  # Run daily at midnight
+    - cron: "0 0 * * *" # Run daily at midnight
 
 jobs:
   scrape:
@@ -30,6 +30,8 @@ jobs:
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
+        git fetch origin main
+        git pull origin main --rebase  # Pull the latest changes and rebase
         git add docs/epg_data.db
         git commit -m "Update database"
         git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main

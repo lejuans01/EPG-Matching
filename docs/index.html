@@ -3,31 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EPG Matching</title>
+    <title>EPG Data</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="upload-section">
-            <h2>Upload M3U File</h2>
-            <input type="file" id="file-input" />
-            <button id="process-button">Process File</button>
-        </div>
-        
-        <div class="category-section">
-            <select id="category-select">
-                <option value="US">US</option>
-                <option value="UK">UK</option>
-                <!-- Add more options here as needed -->
-            </select>
-        </div>
-        
-        <div id="results">
-            <h3>Matched Channels</h3>
-            <div id="output"></div>
-        </div>
+    <h1>EPG Data</h1>
+    <div id="channel-list">
+        <!-- Channel list will go here -->
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>

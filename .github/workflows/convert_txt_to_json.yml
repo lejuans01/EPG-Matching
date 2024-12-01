@@ -3,66 +3,30 @@ name: Convert TXT to JSON
 on:
   push:
     branches:
-      - main
-  # Optional: Trigger manually if needed
-  # workflow_dispatch:
+      - main  # Trigger the workflow on push to the main branch
+  workflow_dispatch: # Manual trigger from GitHub Actions UI
 
 jobs:
-  convert_txt_to_json:
-    runs-on: ubuntu-latest
+  convert:
+    runs-on: ubuntu-latest  # Runs on the latest Ubuntu image
 
     steps:
-    # Step 1: Checkout the repository
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-    # Step 2: Set Git Config (for committing and pushing changes)
-    - name: Set Git Config
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "github-actions@github.com"
-
-    # Step 3: Set up Python (Install Python 3.12)
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v2
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.12'
+        python-version: '3.8'  # Python version to run the script
 
-    # Step 4: Install Python Dependencies (from requirements.txt)
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    # Step 5: Check the content of epg_data.json before running the script
-    - name: Check epg_data.json before script
-      run: |
-        echo "Before running script:"
-        cat epg_data.json || echo "No epg_data.json file found"
-
-    # Step 6: Run the Python script to update epg_data.json from .txt files
-    - name: Run Convert TXT to JSON Script
+    - name: Run TXT to JSON conversion script
       run: |
         python convert_txt_to_json.py
 
-    # Step 7: Check the content of epg_data.json after running the script
-    - name: Check epg_data.json after script
+    - name: Commit changes
       run: |
-        echo "After running script:"
-        cat epg_data.json || echo "No epg_data.json file found"
-
-    # Step 8: Check if changes have been made to epg_data.json
-    - name: Check if epg_data.json has changes
-      run: |
-        git diff --exit-code || echo "Changes detected in epg_data.json"
-
-    # Step 9: Commit and Push Changes (only if changes detected)
-    - name: Commit and Push Changes (if any)
-      run: |
-        git status
-        if ! git diff --exit-code; then
-          git add epg_data.json
-          git commit -m "Update epg_data.json from TXT files"
-          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main
-        else
-          echo "No changes detected, skipping commit."
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "github-actions@github.com"
+        git add epg_data.json
+        git commit -m "Update epg_data.json from TXT files"
+        git push

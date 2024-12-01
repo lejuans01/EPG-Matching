@@ -1,3 +1,22 @@
+// Global variable to store EPG data
+let epg_data = {}; 
+
+// Function to fetch EPG data from a JSON file
+function fetchEPGData() {
+  fetch('epg_data.json')  // Make sure this points to the correct path for your JSON file
+    .then(response => response.json())  // Parse the JSON response
+    .then(data => {
+      epg_data = data;  // Store the loaded data in the epg_data variable
+      console.log('Loaded EPG Data:', epg_data);  // Debugging log
+    })
+    .catch(error => console.error('Error loading EPG data:', error));  // Error handling
+}
+
+// Call fetchEPGData when the page loads
+window.onload = function() {
+  fetchEPGData();
+};
+
 let epg_data = {};  // Initialize an empty object to store EPG data
 
 // Function to fetch the master EPG data from the server (you need to provide the correct file path)

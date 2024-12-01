@@ -1,54 +1,31 @@
 import requests
-from bs4 import BeautifulSoup
-import sqlite3
 
-BASE_URL = "https://epgshare01.online/epgshare01/"
+# Example URL of the EPG database or your .txt source
+epg_url = "https://epgshare01.online/epgshare01/epg_ripper_US1.txt"
 
-# Step 1: Fetch all .txt files from the directory
-def fetch_txt_files():
-    response = requests.get(BASE_URL)
-    soup = BeautifulSoup(response.text, "html.parser")
-    txt_files = []
-    for link in soup.find_all("a"):
-        href = link.get("href")
-        if href and href.endswith(".txt"):
-            txt_files.append(href)
-    return txt_files
-
-# Step 2: Process each .txt file and store in database
-def process_txt_file(file_name, cursor):
-    url = BASE_URL + file_name
+def fetch_and_process_data(url):
     response = requests.get(url)
-    lines = response.text.splitlines()
-    category = file_name.replace("epg_ripper_", "").replace(".txt", "").upper()
+    if response.status_code == 200:
+        # Print the raw data to check if it's being fetched properly
+        print("Raw data fetched:\n", response.text[:500])  # Display first 500 chars of raw data
+        
+        # Process the data to extract channel names
+        channels = process_channels(response.text)
+        print("Channels processed:", channels)
+    else:
+        print("Failed to fetch data from", url)
 
-    print(f"Processing file: {file_name}...")  # Debugging statement
-
+def process_channels(data):
+    lines = data.split("\n")
+    channel_names = []
+    
     for line in lines:
-        line = line.strip()
-        if line and not line.startswith("--"):  # Ignore comments or empty lines
-            cursor.execute("INSERT INTO tvg_ids (tvg_id, category) VALUES (?, ?)", (line, category))
+        if line.startswith("#EXTINF:"):
+            # Extract channel name from the line (you might need to adjust this depending on the format)
+            channel_name = line.split(",")[-1].strip()  
+            channel_names.append(channel_name)
     
-    print(f"Finished processing file: {file_name}")  # Debugging statement
+    return channel_names
 
-
-# Step 3: Setup database and process all files
-def setup_database():
-    conn = sqlite3.connect("docs/epg_data.db")  # Save to 'docs' folder
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS tvg_ids (
-                        id INTEGER PRIMARY KEY,
-                        tvg_id TEXT,
-                        category TEXT
-                     )''')
-    conn.commit()
-    
-    # Fetch and process files
-    txt_files = fetch_txt_files()
-    for txt_file in txt_files:
-        process_txt_file(txt_file, cursor)
-    
-    conn.commit()
-    conn.close()
-
-setup_database()
+# Fetch and process data
+fetch_and_process_data(epg_url)

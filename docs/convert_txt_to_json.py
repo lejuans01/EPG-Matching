@@ -1,47 +1,29 @@
-name: EPG Matching Workflow
+import json
+import os
 
-on:
-  push:
-    branches:
-      - main
+# Path to your .txt files
+txt_files = ["epg_ripper_US1.txt", "epg_ripper_US_LOCALS2.txt", "epg_ripper_US_SPORTS1.txt"]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+def convert_txt_to_json(txt_files):
+    data = {}  # This will hold all your converted data
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    for txt_file in txt_files:
+        with open(txt_file, 'r') as f:
+            content = f.readlines()
 
-      - name: Set Git Config
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "github-actions@github.com"
+        # Here, you should parse the content based on your expected format.
+        # This is just an example of how you might convert the file to JSON.
+        # You need to adjust it based on your `.txt` format.
+        for line in content:
+            if line.startswith("#EXTINF"):
+                channel_info = {
+                    "info": line.strip()
+                }
+                data[txt_file] = data.get(txt_file, []) + [channel_info]
 
-      - name: Check epg_data.json before script
-        run: |
-          echo "Before running script:"
-          cat epg_data.json || echo "No epg_data.json file found"
-        
-      - name: Run the Python script to update epg_data.json
-        run: |
-          python convert_txt_to_json.py
+    # Write the collected data into a .json file
+    with open("epg_data.json", 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
-      - name: Check epg_data.json after script
-        run: |
-          echo "After running script:"
-          cat epg_data.json || echo "No epg_data.json file found"
-        
-      - name: Check if epg_data.json has changes
-        run: |
-          git diff --exit-code || echo "Changes detected in epg_data.json"
-
-      - name: Commit and Push Changes (if any)
-        run: |
-          git status
-          if ! git diff --exit-code; then
-            git add epg_data.json
-            git commit -m "Update epg_data.json from TXT files"
-            git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main
-          else
-            echo "No changes detected, skipping commit."
+# Call the function
+convert_txt_to_json(txt_files)

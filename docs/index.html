@@ -1,30 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EPG Channel Matching</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPG Matching</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="container">
+        <div class="upload-section">
+            <h2>Upload M3U File</h2>
+            <input type="file" id="file-input" />
+            <button id="process-button">Process File</button>
+        </div>
+        
+        <div class="category-section">
+            <select id="category-select">
+                <option value="US">US</option>
+                <option value="UK">UK</option>
+                <!-- Add more options here as needed -->
+            </select>
+        </div>
+        
+        <div id="results">
+            <h3>Matched Channels</h3>
+            <div id="output"></div>
+        </div>
+    </div>
 
-  <!-- Category Dropdown (Populated by JavaScript) -->
-  <div>
-    <label for="categoryDropdown">Select Category</label>
-    <select id="categoryDropdown"></select>
-  </div>
-
-  <!-- File Upload Section -->
-  <div>
-    <label for="fileInput" class="upload-btn">Upload M3U File</label>
-    <input type="file" id="fileInput" onchange="handleFileUpload(event)">
-  </div>
-
-  <!-- Results Section -->
-  <div id="channelOutput">
-    <!-- Results will be displayed here -->
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

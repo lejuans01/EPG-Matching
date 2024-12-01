@@ -1,11 +1,14 @@
+import os
+
 def load_master_data(master_file_path):
     """Load master data from the .txt file into a dictionary."""
     master_data = {}
     with open(master_file_path, 'r') as f:
         for line in f:
             # Example: 3ABN.Dare.to.Dream.Network.us|tvg-id="3ABN_1"
-            channel_name, tvg_id = line.strip().split('|')
-            master_data[channel_name.strip()] = tvg_id.strip()
+            if "|" in line:
+                channel_name, tvg_id = line.strip().split('|')
+                master_data[channel_name.strip()] = tvg_id.strip()
     return master_data
 
 def match_and_update_user_epg(user_epg_file_path, master_data):
@@ -31,7 +34,21 @@ def match_and_update_user_epg(user_epg_file_path, master_data):
     print("EPG updated successfully!")
 
 # Example usage
-master_file_path = 'epg_ripper_US1.txt'  # The master .txt file with channels and tvg-id's
+master_file_paths = [
+    'docs/epg_ripper_US1.txt',  # The master .txt file with channels and tvg-id's
+    'docs/epg_ripper_US_LOCALS2.txt',
+    'docs/epg_ripper_US_SPORTS1.txt'
+]
 user_epg_file_path = 'user_uploaded_epg.m3u'  # The user's uploaded EPG file
-master_data = load_master_data(master_file_path)
-match_and_update_user_epg(user_epg_file_path, master_data)
+
+master_data = {}
+for path in master_file_paths:
+    if os.path.exists(path):
+        master_data.update(load_master_data(path))
+    else:
+        print(f"Warning: File {path} not found.")
+
+if master_data:
+    match_and_update_user_epg(user_epg_file_path, master_data)
+else:
+    print("Error: No master data loaded.")

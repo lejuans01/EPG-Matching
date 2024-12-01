@@ -21,26 +21,24 @@ jobs:
         python-version: 3.x
 
     - name: Install Dependencies
-      run: pip install requests beautifulsoup4
+      run: |
+        pip install requests beautifulsoup4
 
     - name: Run Scraper
-      run: python scraper.py
+      run: |
+        python scraper.py
 
     - name: Commit Database
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "github-actions@github.com"
         
-        # Check for unstaged changes
         git status
         
-        # Add and commit changes to the database file
         git add docs/epg_data.db
         git commit -m "Update database"
         
-        # Pull the latest changes from the remote repo
         git fetch origin main
-        git pull origin main --rebase  # Ensure no conflicts during push
+        git pull origin main --rebase
         
-        # Push the changes
         git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main

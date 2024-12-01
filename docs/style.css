@@ -1,66 +1,14 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #2e2e2e;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    background-color: #f4f4f4;
     margin: 0;
-}
-
-.container {
-    background-color: #3c3c3c;
     padding: 20px;
-    border-radius: 10px;
-    width: 400px;
-    text-align: center;
 }
 
-.upload-section {
-    margin-bottom: 20px;
+h1 {
+    color: #333;
 }
 
-#file-input {
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    width: 100%;
-    background-color: #4c4c4c;
-    color: white;
-    border: none;
-}
-
-button {
-    padding: 10px 20px;
-    background-color: #008CBA;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-button:hover {
-    background-color: #005f73;
-}
-
-#category-select {
-    padding: 10px;
-    background-color: #4c4c4c;
-    color: white;
-    border-radius: 5px;
-    width: 100%;
-}
-
-#results {
+#channel-list {
     margin-top: 20px;
-}
-
-#output {
-    background-color: #4c4c4c;
-    padding: 15px;
-    border-radius: 5px;
-    max-height: 300px;
-    overflow-y: scroll;
 }

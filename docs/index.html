@@ -43,6 +43,25 @@
     button:hover {
       background-color: #1565c0;
     }
+    .upload-btn-container {
+  margin-top: 15px;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.upload-btn {
+  background-color: var(--button-bg-dark);
+  padding: 15px;
+  font-size: 1.25rem;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+}
+
   </style>
 </head>
 <body>
@@ -51,6 +70,12 @@
     <p>Upload or paste your M3U file below:</p>
     <textarea id="m3uInput" placeholder="Paste your M3U content here..."></textarea>
     <button onclick="processFile()">Process File</button>
+    <!-- File Upload Button -->
+<div class="upload-btn-container">
+  <label for="fileInput" class="upload-btn">Upload M3U File</label>
+  <input type="file" id="fileInput" accept=".m3u,.m3u8" onchange="handleFileUpload(event)" />
+</div>
+
 
     <h2>Unmatched Channels</h2>
     <textarea id="unmatchedOutput" readonly></textarea>

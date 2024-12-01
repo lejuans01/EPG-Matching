@@ -1,0 +1,10 @@
+{
+  "US": {
+    "3ABN.Dare.to.Dream.Network.us": "tvg-id-12345",
+    "ABC.(KABC).Los.Angeles,.CA.us": "tvg-id-67890"
+  },
+  "UK": {
+    "BBC.America.-.East.us": "tvg-id-11111",
+    "ITV1.us": "tvg-id-22222"
+  }
+}

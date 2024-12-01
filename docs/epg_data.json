@@ -1,45 +1,10 @@
-// Function to match channels from M3U content
-function matchChannels(m3uContent) {
-  const lines = m3uContent.split("\n");  // Split M3U content by line
-  const matchedChannels = [];  // Array to store matched channels
-  const unmatchedChannels = [];  // Array to store unmatched channels
-
-  // Loop through the M3U content to find matching channels
-  lines.forEach(line => {
-    if (line.startsWith("#EXTINF:")) {  // Identify channel lines in M3U
-      const channelName = line.split(",")[1].trim();  // Extract the channel name
-
-      let matchFound = false;
-
-      // Loop through categories and check for matches
-      for (let category in epg_data) {
-        if (epg_data[category].hasOwnProperty(channelName)) {  // Check if the channel is in the category
-          matchedChannels.push({ name: channelName, tvgId: epg_data[category][channelName] });
-          matchFound = true;
-          break;
-        }
-      }
-
-      if (!matchFound) {
-        unmatchedChannels.push(channelName);  // If no match found, add to unmatched
-      }
-    }
-  });
-
-  // Display matched and unmatched channels
-  displayMatches(matchedChannels, unmatchedChannels);
-}
-
-// Function to display matched and unmatched channels
-function displayMatches(matched, unmatched) {
-  let matchedOutput = matched.map(channel => `${channel.name} - tvg-id: ${channel.tvgId}`).join("\n");
-  let unmatchedOutput = unmatched.join("\n");
-
-  // Update HTML to display the matched/unmatched channels
-  document.getElementById('channelOutput').innerHTML = `
-    <h2>Matched Channels:</h2>
-    <pre>${matchedOutput}</pre>
-    <h2>Unmatched Channels:</h2>
-    <pre>${unmatchedOutput}</pre>
-  `;
+{
+  "US": {
+    "3ABN.Dare.to.Dream.Network.us": "tvg-id-12345",
+    "ABC.(KABC).Los.Angeles,.CA.us": "tvg-id-67890"
+  },
+  "UK": {
+    "BBC.America.-.East.us": "tvg-id-11111",
+    "ITV1.us": "tvg-id-22222"
+  }
 }

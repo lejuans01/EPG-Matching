@@ -28,17 +28,30 @@ jobs:
       run: |
         python scraper.py
 
-    - name: Commit Database
+    - name: Check for changes in database
       run: |
+        git status  # Check if there are unstaged changes
+        
+        # Check the database file for modifications
+        if git diff --exit-code docs/epg_data.db; then
+          echo "No changes detected in epg_data.db"
+        else
+          echo "Changes detected in epg_data.db"
+        fi
+
+    - name: Commit Database if Changes Found
+      run: |
+        # Only commit if changes are detected in the database file
         git config --global user.name "GitHub Actions"
         git config --global user.email "github-actions@github.com"
         
         git status
         
         git add docs/epg_data.db
-        git commit -m "Update database"
+        git commit -m "Update database" || echo "No changes to commit"
         
         git fetch origin main
         git pull origin main --rebase
         
+        # Push changes if there are any
         git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main

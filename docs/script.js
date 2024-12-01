@@ -22,11 +22,17 @@ function matchChannels(m3uContent) {
   // Loop through the M3U lines and find matches
   lines.forEach(line => {
     if (line.startsWith("#EXTINF:")) {
-      const channelName = line.split(",")[1].trim();  // Extract the channel name
-      console.log("Processing channel:", channelName);  // Debugging statement
+      const channelName = line.split(",")[1].trim();
+      console.log("Processing channel:", channelName);
 
       let matchFound = false;
-
+      for (let category in epg_data) {
+        if (epg_data[category] && epg_data[category][channelName]) {
+          matchedChannels.push({ name: channelName, tvgId: epg_data[category][channelName] });
+          matchFound = true;
+          break;
+        }
+      }
       // Check if the channel name exists in the master data
       if (epg_data.hasOwnProperty(channelName)) {
         // If found, add the tvg-id to the matched channels
@@ -35,7 +41,6 @@ function matchChannels(m3uContent) {
       }
 
       if (!matchFound) {
-        // If no match found, add to unmatched channels
         unmatchedChannels.push(channelName);
       }
     }

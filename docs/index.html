@@ -16,6 +16,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      flex-direction: column;
     }
 
     main {
@@ -122,7 +123,7 @@
 
     // Function to fetch the master EPG data from the server
     function fetchMasterData() {
-      fetch('epg_data.json')  // This should point to your master record data in JSON format
+      fetch('epg_data.json')  // Ensure this is the correct path to your master data
         .then(response => response.json())  // Assuming the file is in JSON format
         .then(data => {
           epg_data = data; // Store the scraped data

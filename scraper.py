@@ -21,11 +21,16 @@ def process_txt_file(file_name, cursor):
     response = requests.get(url)
     lines = response.text.splitlines()
     category = file_name.replace("epg_ripper_", "").replace(".txt", "").upper()
-    
+
+    print(f"Processing file: {file_name}...")  # Debugging statement
+
     for line in lines:
         line = line.strip()
         if line and not line.startswith("--"):  # Ignore comments or empty lines
             cursor.execute("INSERT INTO tvg_ids (tvg_id, category) VALUES (?, ?)", (line, category))
+    
+    print(f"Finished processing file: {file_name}")  # Debugging statement
+
 
 # Step 3: Setup database and process all files
 def setup_database():

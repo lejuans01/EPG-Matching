@@ -3,27 +3,30 @@ name: Convert TXT to JSON
 on:
   push:
     branches:
-      - main  # Trigger the workflow on push to the main branch
-  workflow_dispatch: # Manual trigger from GitHub Actions UI
+      - main  # Trigger the workflow on a push to the main branch
 
 jobs:
   convert:
-    runs-on: ubuntu-latest  # Runs on the latest Ubuntu image
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment
 
     steps:
+    # Step 1: Checkout the repository code
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # Step 2: Set up Python (use Python 3.8 or whatever version you want)
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.8'  # Python version to run the script
+        python-version: '3.8'
 
-    - name: Run TXT to JSON conversion script
+    # Step 3: Run your Python script to convert TXT to JSON
+    - name: Run conversion script
       run: |
         python convert_txt_to_json.py
 
-    - name: Commit changes
+    # Step 4: Commit and push the updated epg_data.json file
+    - name: Commit and push changes
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "github-actions@github.com"

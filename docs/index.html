@@ -121,7 +121,8 @@
 
           let matchFound = false;
           for (let category in epg_data) {
-            if (epg_data[category][channelName]) {
+            // Match based on category and channel name
+            if (epg_data[category] && epg_data[category][channelName]) {
               matchedChannels.push({ name: channelName, tvgId: epg_data[category][channelName] });
               matchFound = true;
               break;

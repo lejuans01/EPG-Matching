@@ -8,64 +8,55 @@ function fetchEPGData() {
     .then(data => {
       epg_data = data;  // Store the loaded data in the epg_data variable
       console.log('Loaded EPG Data:', epg_data);  // Debugging log
+      populateCategoryDropdown();  // Populate dropdown after loading data
     })
     .catch(error => console.error('Error loading EPG data:', error));  // Error handling
 }
 
-// Call fetchEPGData when the page loads
-window.onload = function() {
-  fetchEPGData();
-};
+// Function to populate the category dropdown with available categories from epg_data
+function populateCategoryDropdown() {
+  const categories = Object.keys(epg_data);  // Get all category names (keys) from epg_data
+  const categoryDropdown = document.getElementById('categoryDropdown');
+  categoryDropdown.innerHTML = '';  // Clear existing options
 
-let epg_data = {};  // Initialize an empty object to store EPG data
-
-// Function to fetch the master EPG data from the server (you need to provide the correct file path)
-function fetchMasterData() {
-  fetch('epg_data.json')  // This should point to your master record data in JSON format
-    .then(response => response.json())  // Assuming the file is in JSON format
-    .then(data => {
-      epg_data = data; // Store the scraped data
-      console.log('Master EPG Data Loaded:', epg_data);  // Logs the data to the console
-    })
-    .catch(error => {
-      console.error('Error fetching EPG data:', error);  // Error handling
-    });
+  // Add each category to the dropdown
+  categories.forEach(category => {
+    const option = document.createElement('option');
+    option.value = category;
+    option.textContent = category;  // Set the category name as option text
+    categoryDropdown.appendChild(option);  // Add the option to the dropdown
+  });
 }
 
-// Function to match and update the M3U file
+// Function to match channels from M3U content
 function matchChannels(m3uContent) {
-  const lines = m3uContent.split("\n");
-  const matchedChannels = [];
-  const unmatchedChannels = [];
+  const lines = m3uContent.split("\n");  // Split M3U content by line
+  const matchedChannels = [];  // Array to store matched channels
+  const unmatchedChannels = [];  // Array to store unmatched channels
 
-  // Loop through the M3U lines and find matches
+  // Loop through the M3U content to find matching channels
   lines.forEach(line => {
-    if (line.startsWith("#EXTINF:")) {
-      const channelName = line.split(",")[1].trim();
-      console.log("Processing channel:", channelName);
+    if (line.startsWith("#EXTINF:")) {  // Identify channel lines in M3U
+      const channelName = line.split(",")[1].trim();  // Extract the channel name
 
       let matchFound = false;
+
+      // Loop through categories and check for matches
       for (let category in epg_data) {
-        if (epg_data[category] && epg_data[category][channelName]) {
+        if (epg_data[category].hasOwnProperty(channelName)) {  // Check if the channel is in the category
           matchedChannels.push({ name: channelName, tvgId: epg_data[category][channelName] });
           matchFound = true;
           break;
         }
       }
-      // Check if the channel name exists in the master data
-      if (epg_data.hasOwnProperty(channelName)) {
-        // If found, add the tvg-id to the matched channels
-        matchedChannels.push({ name: channelName, tvgId: epg_data[channelName] });
-        matchFound = true;
-      }
 
       if (!matchFound) {
-        unmatchedChannels.push(channelName);
+        unmatchedChannels.push(channelName);  // If no match found, add to unmatched
       }
     }
   });
 
-  // Display the matched and unmatched channels
+  // Display matched and unmatched channels
   displayMatches(matchedChannels, unmatchedChannels);
 }
 
@@ -74,37 +65,32 @@ function displayMatches(matched, unmatched) {
   let matchedOutput = matched.map(channel => `${channel.name} - tvg-id: ${channel.tvgId}`).join("\n");
   let unmatchedOutput = unmatched.join("\n");
 
-  // Update the result section in the HTML
-  document.getElementById('unmatchedOutput').value = unmatchedOutput;
-  document.getElementById('finalOutput').value = matchedOutput;
+  // Update HTML to display the matched/unmatched channels
+  document.getElementById('channelOutput').innerHTML = `
+    <h2>Matched Channels:</h2>
+    <pre>${matchedOutput}</pre>
+    <h2>Unmatched Channels:</h2>
+    <pre>${unmatchedOutput}</pre>
+  `;
 }
 
-// Handle the file upload process
+// Handle the M3U file upload process
 function handleFileUpload(event) {
-  const file = event.target.files[0];
+  const file = event.target.files[0];  // Get the uploaded file
   if (file && (file.type === "application/x-mpegurl" || file.name.endsWith(".m3u") || file.name.endsWith(".m3u8"))) {
     const reader = new FileReader();
     reader.onload = function(e) {
-      const m3uContent = e.target.result;
-      matchChannels(m3uContent);  // Start matching process with the uploaded file
+      const m3uContent = e.target.result;  // Read file content as text
+      console.log("File content:", m3uContent);  // Debugging log to check file content
+      matchChannels(m3uContent);  // Start matching channels with the uploaded file
     };
-    reader.readAsText(file);
+    reader.readAsText(file);  // Read the file as text
   } else {
     alert("Please upload a valid M3U file.");
   }
 }
 
-// Function to download the updated M3U file
-function downloadFile() {
-  const content = document.getElementById("finalOutput").value;
-  const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "updated_channels.m3u";
-  a.click();
-}
-
+// Call fetchEPGData when the page loads
 window.onload = function() {
-  fetchMasterData();  // Load the master EPG data into memory
+  fetchEPGData();  // Load EPG data
 };
